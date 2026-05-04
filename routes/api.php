@@ -1,0 +1,43 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DealController;
+use App\Http\Controllers\Api\ContractController;
+use App\Http\Controllers\Api\InvoiceController;
+use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\TimeEntryController;
+
+// throttle:5,1 = max 5 attempts per minute per IP — brute-force protection.
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+
+// Auth routes are user-scoped — they do NOT need the tenant middleware.
+// /auth/me returns the tenant info the frontend needs to SET X-Tenant-ID,
+// so requiring X-Tenant-ID on /auth/me would be a chicken-and-egg problem.
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
+    Route::delete('/auth/logout', [AuthController::class, 'logout']);
+    Route::get('/auth/me', [AuthController::class, 'me']);
+    Route::post('/auth/refresh', [AuthController::class, 'refresh']);
+});
+
+// Business data routes — require tenant scope.
+Route::middleware(['auth:sanctum', 'tenant', 'throttle:60,1'])->group(function () {
+    // Deals
+    Route::apiResource('deals', DealController::class);
+    Route::patch('/deals/{deal}/stage', [DealController::class, 'updateStage']);
+    Route::post('/deals/{deal}/win', [DealController::class, 'win']);
+
+    // Contracts (created only via win_deal; no store route)
+    Route::apiResource('contracts', ContractController::class)->only(['index', 'show', 'update', 'destroy']);
+
+    // Invoices
+    Route::apiResource('invoices', InvoiceController::class)->only(['index', 'show', 'store', 'destroy']);
+    Route::patch('/invoices/{invoice}/pay', [InvoiceController::class, 'pay']);
+
+    // Projects (created only via win_deal; no store route)
+    Route::apiResource('projects', ProjectController::class)->only(['index', 'show', 'update', 'destroy']);
+
+    // Time Entries
+    Route::apiResource('time-entries', TimeEntryController::class)->only(['index', 'show', 'store', 'destroy']);
+    Route::patch('/time-entries/{time_entry}/approve', [TimeEntryController::class, 'approve']);
+});
