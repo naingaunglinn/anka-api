@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DealController;
 use App\Http\Controllers\Api\ContractController;
 use App\Http\Controllers\Api\InvoiceController;
+use App\Http\Controllers\Api\OrganizationController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TimeEntryController;
 
@@ -40,4 +41,28 @@ Route::middleware(['auth:sanctum', 'tenant', 'throttle:60,1'])->group(function (
     // Time Entries
     Route::apiResource('time-entries', TimeEntryController::class)->only(['index', 'show', 'store', 'destroy']);
     Route::patch('/time-entries/{time_entry}/approve', [TimeEntryController::class, 'approve']);
+
+    // Organization
+    Route::get('/departments',              [OrganizationController::class, 'indexDepartments']);
+    Route::post('/departments',             [OrganizationController::class, 'storeDepartment']);
+    Route::put('/departments/{department}', [OrganizationController::class, 'updateDepartment']);
+    Route::delete('/departments/{department}', [OrganizationController::class, 'destroyDepartment']);
+
+    Route::get('/roles',         [OrganizationController::class, 'indexRoles']);
+    Route::post('/roles',        [OrganizationController::class, 'storeRole']);
+    Route::put('/roles/{role}',  [OrganizationController::class, 'updateRole']);
+    Route::delete('/roles/{role}', [OrganizationController::class, 'destroyRole']);
+
+    Route::get('/employees',              [OrganizationController::class, 'indexEmployees']);
+    Route::post('/employees',             [OrganizationController::class, 'storeEmployee']);
+    Route::put('/employees/{employee}',   [OrganizationController::class, 'updateEmployee']);
+    Route::delete('/employees/{employee}', [OrganizationController::class, 'destroyEmployee']);
+
+    Route::get('/global-overheads',                          [OrganizationController::class, 'indexOverheads']);
+    Route::post('/global-overheads',                         [OrganizationController::class, 'storeOverhead']);
+    Route::put('/global-overheads/{globalOverhead}',         [OrganizationController::class, 'updateOverhead']);
+    Route::delete('/global-overheads/{globalOverhead}',      [OrganizationController::class, 'destroyOverhead']);
+
+    Route::get('/company-settings', [OrganizationController::class, 'getSettings']);
+    Route::put('/company-settings', [OrganizationController::class, 'upsertSettings']);
 });
